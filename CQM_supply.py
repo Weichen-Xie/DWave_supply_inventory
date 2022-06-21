@@ -1,13 +1,21 @@
 from dimod import CQM, Binary, quicksum
 from dwave.system import LeapHybridCQMSampler
-import random
 import numpy as np
 
-# Problem set up (specific exmaple)
-# items
-U = [0,2,3,4,9]
-# suppliers
-V = [{0,2,3,4,9}, {0,9,2}, {0,2,3,4}, {0,9,2,3}, {0,2,3,4,9}]
+# -------------- Problem set up --------------
+# items (e.g. [0,2,3,4,9])
+U = list(set(np.random.randint(10, size=(10))))
+# suppliers (e.g. [{0,2,3,4,9}, {0,9,2}, {0,2,3,4}, {0,9,2,3}, {0,2,3,4,9}])
+V = [set(U[i] for i in np.random.randint(len(U), size=(8))) for j in range(5)]
+
+# Print set up
+print('The universe is',U)
+print('Number of elements in the universe: {:d}'.format(len(U)))
+
+print('There are {:d} collections:'.format(len(V)))
+for i in range(len(V)):
+    print('Supplier{:d}:'.format(i), V[i])
+print('Number of sets: N={:d}'.format(len(V)))
 
 # Build CQM
 cqm = CQM()
@@ -18,7 +26,7 @@ bin_variables = [Binary(i) for i in range(len(V))]
 # -------------- Objective Function ------------------
 # minimize total number of suppliers
 # Add obj to CQM
-cqm.set_objective(quicksum(bin_variables[i] for i in range(len(U))))
+cqm.set_objective(quicksum(bin_variables[i] for i in range(len(V))))
 
 # -------------- Constraints -----------------
 # suppliers should cover all items
