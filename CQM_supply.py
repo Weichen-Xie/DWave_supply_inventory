@@ -9,6 +9,7 @@ U = list(set(np.random.randint(10, size=(10))))
 V = [set(U[i] for i in np.random.randint(len(U), size=(8))) for j in range(5)]
 
 # Print set up
+print('------------- Problem set up -------------')
 print('The universe is',U)
 print('Number of elements in the universe: {:d}'.format(len(U)))
 
@@ -39,8 +40,7 @@ cqm_sampler = LeapHybridCQMSampler()
 sampleset = cqm_sampler.sample_cqm(cqm, label = 'Supply Demo')
 
 # -------------- Process the results ---------------
-print('CQM Solution:')
-#feasible_sols = np.where(sampleset.record.is_feasible == True)
+print('------------- Solution -------------')
 feasible_sols = sampleset.filter(lambda row: row.is_feasible == True)
 if not len(feasible_sols):
     print("\nNo feasible solution found.\n")
