@@ -60,10 +60,15 @@ y = [[Binary((j,len(U)+1))] for j in range(len(S))]
 obj1 = -quicksum(V[i]*x[j][i]*int(U[i] in S[j])*y[j][0] for i in range(len(U)) for j in range(len(S)) )
 # minimize total cost
 obj2 = quicksum(W[j][i]*x[j][ U.index(list(S[j])[i]) ]*y[j][0] for j in range(len(S)) for i in range(len(W[j])) )
-# minimize number of 
+# minimize number of suppliers
+obj3 = quicksum(y[j][0] for j in range(len(S)))
+
+# set Lagrange Multipliers
+A = 1
+B = 1
 
 # Add obj to CQM
-cqm.set_objective(obj1+obj2)
+cqm.set_objective(A*(obj1+obj2)+B*obj3)
 
 # -------------- Constraints -----------------
 # suppliers should cover all items
@@ -84,8 +89,8 @@ for i in range(len(U)):
     cqm.add_constraint( quicksum(x[j][i] for j in range(len(S))) <= upper_bound[i], 
                         label = 'bound item {:d}'.format(i) )
 # minimize number of suppliers
-cqm.add_constraint( quicksum( y[j][0] for j in range(len(S))) <= 3,
-                    label = 'mini supplier' )
+#cqm.add_constraint( quicksum( y[j][0] for j in range(len(S))) <= 3,
+#                    label = 'mini supplier' )
 
 # -------------- Submit to CQM sampler ---------------
 cqm_sampler = LeapHybridCQMSampler()
