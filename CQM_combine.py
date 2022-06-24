@@ -88,9 +88,7 @@ cqm.add_constraint( quicksum(W[j][i]*x[j][ U.index(list(S[j])[i]) ]*y[j][0] for 
 for i in range(len(U)):
     cqm.add_constraint( quicksum(x[j][i] for j in range(len(S))) <= upper_bound[i], 
                         label = 'bound item {:d}'.format(i) )
-# minimize number of suppliers
-#cqm.add_constraint( quicksum( y[j][0] for j in range(len(S))) <= 3,
-#                    label = 'mini supplier' )
+
 
 # -------------- Submit to CQM sampler ---------------
 cqm_sampler = LeapHybridCQMSampler()
