@@ -8,7 +8,7 @@ np.random.seed(10)
 
 print('------------- Problem set up -------------')
 # inventory universe
-U = list(set(np.random.randint(16, size=(5))))
+U = list(set(np.random.randint(16, size=(10))))
 # Average cost of items
 W_avg = {U[i]: int(np.random.randint(9)+1) for i in range(len(U))}
 # Price of items
@@ -27,7 +27,7 @@ print('Bound on item quantity is', upper_bound)
 print('------------------------------------------')
 
 # suppliers 
-S = [set(U[i] for i in np.random.randint(len(U), size=(6))) for j in range(3)]
+S = [set(U[i] for i in np.random.randint(len(U), size=(6))) for j in range(5)]
 # Costs from each supplier
 W = list(S)
 for i in range(len(S)):
@@ -51,25 +51,24 @@ cqm = CQM()
 # Create discrete variables
 # Quantity of each item from each supplier
 x = [[Integer((j,i), upper_bound=upper_bound[i]) for i in range(len(U))] for j in range(len(S))]
-
+# Create binary variables
+# Indicator for choosing each supplier
+y = [[Binary((j,len(U)+1))] for j in range(len(S))]
 
 # -------------- Objective Function ------------------
 # maximize total profit
-obj1 = -quicksum(V[i]*x[j][i]*int(U[i] in S[j]) for i in range(len(U)) for j in range(len(S)) )
+obj1 = -quicksum(V[i]*x[j][i]*int(U[i] in S[j])*y[j][0] for i in range(len(U)) for j in range(len(S)) )
 # minimize total cost
-obj2 = quicksum(W[j][i]*x[j][ U.index(list(S[j])[i]) ] for j in range(len(S)) for i in range(len(W[j])) )
-# minimize number of suppliers
-obj3 = quicksum( int(bool( quicksum(x[j][i] for i in range(len(U))) )) for j in range(len(S)))
-# set Lagrange Multiplier
-A = 20
-B = 1
+obj2 = quicksum(W[j][i]*x[j][ U.index(list(S[j])[i]) ]*y[j][0] for j in range(len(S)) for i in range(len(W[j])) )
+# minimize number of 
+
 # Add obj to CQM
-cqm.set_objective(A*(obj1+obj2)+B*obj3)
+cqm.set_objective(obj1+obj2)
 
 # -------------- Constraints -----------------
 # suppliers should cover all items
 for i in range(len(U)):
-    cqm.add_constraint( quicksum( int(U[i] in S[j])*x[j][i] for j in range(len(S))) >= 1,
+    cqm.add_constraint( quicksum( int(U[i] in S[j])*x[j][i]*y[j][0] for j in range(len(S))) >= 1,
                         label = 'cover item {:d}'.format(i) )
 # cannot buy without supply
 for i in range(len(U)):
@@ -78,13 +77,15 @@ for i in range(len(U)):
             cqm.add_constraint( x[j][i] == 0, 
                                 label = 'supplier{:d} sells no item{:d}'.format(j, U[i]) )
 # no exceeding total budget
-cqm.add_constraint( quicksum(W[j][i]*x[j][ U.index(list(S[j])[i]) ] for j in range(len(S)) for i in range(len(W[j])) ) <= Wbudget,
+cqm.add_constraint( quicksum(W[j][i]*x[j][ U.index(list(S[j])[i]) ]*y[j][0] for j in range(len(S)) for i in range(len(W[j])) ) <= Wbudget,
                     label = 'budget' )
 # no exceeding upper bound
 for i in range(len(U)):
     cqm.add_constraint( quicksum(x[j][i] for j in range(len(S))) <= upper_bound[i], 
                         label = 'bound item {:d}'.format(i) )
-
+# minimize number of suppliers
+cqm.add_constraint( quicksum( y[j][0] for j in range(len(S))) <= 3,
+                    label = 'mini supplier' )
 
 # -------------- Submit to CQM sampler ---------------
 cqm_sampler = LeapHybridCQMSampler()
@@ -97,9 +98,16 @@ if not len(feasible_sols):
     print("\nNo feasible solution found.\n")
 else:
     sol = feasible_sols.first.sample
-    purchase_plan = [int(sol[(j,i)]) for i in range(len(U)) for j in range(len(S))]
+    choosing_plan = [int(sol[(j,len(U)+1)]) for j in range(len(S))]
+    purchase_plan = [int(sol[(j,i)])*choosing_plan[j] for i in range(len(U)) for j in range(len(S))]
     purchase_plan = np.array(purchase_plan).reshape( len(U), len(S) )
 
     df = pd.DataFrame( purchase_plan, index=pd.Index(U, name='Item'),
                        columns=pd.Index(list(range(len(S))), name='Supplier'))
+    print('Choosing', choosing_plan)
     print(df)
+    cost = quicksum(W[j][i]*purchase_plan[ U.index(list(S[j])[i]) ][j] for j in range(len(S)) for i in range(len(W[j])) )
+    profit = quicksum( purchase_plan[i][j]*V[i] for i in range(len(U)) for j in range(len(S)) )
+    print('Profit: ', profit)
+    print('Cost: ', cost)
+    print('Net Profit: ', profit-cost)
