@@ -57,6 +57,8 @@ $$
 \end{align}
 $$
 
+See [notebook](../CQM_supply.ipynb)
+
 ## 2. Profit Optimization
 Another typical logistic problem for a grocer is to maximize overall profit by selecting an optimal set of inventory. To build the model for this problem, assumptions should be given at the very beginning:
   1. there are $N$ different kinds of items $U=\\{ U_0, U_1,\cdots,U_{N-1} \\}$
@@ -82,6 +84,8 @@ $$
 \end{align}
 $$
 
+See [notebook](../CQM_inventory.ipynb)
+
 ## 3. Merging 2 problems
 In a more realistic situation, a grocer needs to consider the above 2 problem simultaneously: maintaining the inventory from smallest number of suppliers while chasing the largest profit. This can be modelled by combining the "set cover" problem from supplier optimization and "knapsack" problem from profit optimization. As always, notations and assumptions are first given as follows:
   1. there are $N$ different kinds of items $U=\\{ U_0, U_1,\cdots,U_{N-1} \\}$
@@ -105,3 +109,5 @@ $$
 $$
 
 where $A,B$ are Lagrange Multipliers.
+
+See [notebook](../CQM_combine.ipynb)
