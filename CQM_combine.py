@@ -57,7 +57,7 @@ y = [[Binary((j,len(U)+1))] for j in range(len(S))]
 
 # -------------- Objective Function ------------------
 # maximize total profit
-obj1 = -quicksum(V[i]*x[j][i]*int(U[i] in S[j])*y[j][0] for i in range(len(U)) for j in range(len(S)) )
+obj1 = -quicksum(V[i]*x[j][i]*y[j][0] for i in range(len(U)) for j in range(len(S)) )
 # minimize total cost
 obj2 = quicksum(W[j][i]*x[j][ U.index(list(S[j])[i]) ]*y[j][0] for j in range(len(S)) for i in range(len(W[j])) )
 # minimize number of suppliers
