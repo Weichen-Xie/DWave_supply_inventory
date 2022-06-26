@@ -5,34 +5,34 @@ import numpy as np
 # ---------- Problem set up -------------
 num_of_items = 12
 # values of every item (e.g. [8, 7, 1, 8, 5, 9, 8, 7, 1, 4, 1, 3])
-values = list(np.random.randint(1,10, size=(num_of_items)))
+V = list(np.random.randint(1,10, size=(num_of_items)))
 # costs of every item (e.g. [2, 4, 8, 8, 4, 2, 5, 2, 4, 9, 7, 2])
-weights = list(np.random.randint(1,10, size=(num_of_items)))
+W = list(np.random.randint(1,10, size=(num_of_items)))
 # total cost upper bound (e.g. 23)
-weight_capacity = np.random.randint(12, 40)
+C = np.random.randint(12, 40)
 # upper bounds of selling every item (e.g. [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3])
-variable_bounds = list(np.random.randint(2, 6,size=(num_of_items)))
+B = list(np.random.randint(2, 6,size=(num_of_items)))
 print('------------- Problem set up -------------')
-print('values:',values)
-print('weights:',weights)
-print('weight_capacity:',weight_capacity)
-print('variable bounds:',variable_bounds)
+print('values:',V)
+print('costs:',W)
+print('budget limit:',C)
+print('quantity bounds:',B)
 
 # ---------- Build QCM ------------
 cqm = CQM()
 
 # Create discrete variables
-x = [Integer(i, upper_bound=variable_bounds[i]) for i in range(num_of_items)]
+x = [Integer(i, upper_bound=B[i]) for i in range(num_of_items)]
 
 # -------------- Objective Function ------------------
 # maximize total profit
 # Add obj to CQM
-cqm.set_objective(-quicksum(values[i]*x[i] for i in range(num_of_items)))
+cqm.set_objective(quicksum((W[i]-V[i])*x[i] for i in range(num_of_items)))
 
 # -------------- Constraints -----------------
-# no exceeding total weight
-cqm.add_constraint( quicksum(weights[i]*x[i] for i in range(num_of_items))<=weight_capacity,
-                    label = 'weight capacity' )
+# no exceeding total budget
+cqm.add_constraint( quicksum(W[i]*x[i] for i in range(num_of_items))<=C,
+                    label = 'budget limit' )
 
 # -------------- Submit to CQM sampler ---------------
 cqm_sampler = LeapHybridCQMSampler()
@@ -46,5 +46,5 @@ if not len(feasible_sols):
 else:
     sol = [int(feasible_sols.first.sample[i]) for i in range(num_of_items)]
     print('best solution: ', sol)
-    print('Total weight: ', quicksum(weights[i]*sol[i] for i in range(num_of_items)))
-    print('Total value: ', quicksum(values[i]*sol[i] for i in range(num_of_items)))
+    print('Total cost: ', quicksum(W[i]*sol[i] for i in range(num_of_items)))
+    print('Total value: ', quicksum(V[i]*sol[i] for i in range(num_of_items)))
